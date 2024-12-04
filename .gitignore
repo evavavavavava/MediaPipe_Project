@@ -1,6 +1,6 @@
 venv/
 env/
-
+share/
 # Исключить временные файлы и кеши
 *.pyc
 *.pyo
@@ -26,3 +26,6 @@ pip-log.txt
 pip-delete-this-directory.txt
 *.tmp
 .DS_Store
+lib/python3.8/site-packages/
+lib/
+venv/
