@@ -7,7 +7,12 @@ share/
 *.pyd
 __pycache__/
 *.log
-
+bin/
+pyvenv.cfg
+lib/
+*.pyc
+*.pyo
+__pycache__/
 # Исключить файлы и папки сборки
 build/
 dist/
