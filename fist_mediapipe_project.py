@@ -9,6 +9,7 @@ screen_width = 2 * root.winfo_screenwidth()
 screen_height = 2 * root.winfo_screenheight()
 root.destroy()
 
+# Скачивание картинок, распознование их размеров
 imageH = cv2.imread('imageHo.png')
 imageJ = cv2.imread('imageJa.png')
 imageA = cv2.imread('imageUsa.png')
@@ -21,7 +22,7 @@ heightf, widthf, _ = imageF.shape
 heightf, widthf, _ = imageF.shape
 
 
-
+# Создаем переменные с текстом
 intro_text = "Hi! To travel to a country, repeat the movement of the choosed country)"
 introo_text = "To start, click 'space'"
 
@@ -83,10 +84,10 @@ while True:
             mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS) # Рисуем все точки и линии
             landmarks = hand_landmarks.landmark
 
-            for id, landmark in enumerate(landmarks):
-                h, w, c = frame.shape
-                cx, cy = int(landmark.x * w), int(landmark.y * h)
-                cv2.putText(frame, str(id), (cx, cy), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1) # Подписывает номера точек
+            #for id, landmark in enumerate(landmarks):
+            #    h, w, c = frame.shape
+            #    cx, cy = int(landmark.x * w), int(landmark.y * h)
+            #    cv2.putText(frame, str(id), (cx, cy), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1) # Подписывает номера точек
 
             for finger_index, tip_id in enumerate(tip_ids): # Идем по кончикам
                 base_id = base_ids[finger_index] # Находим основание данного пальца
@@ -95,16 +96,47 @@ while True:
                 if is_finger_bent(landmarks[base_id], landmarks[joint_id], landmarks[tip_id], is_thumb): # Если палец согнут, то красный круг, иначе зеленый
                     cx, cy = int(landmarks[tip_id].x * frame.shape[1]), int(landmarks[tip_id].y * frame.shape[0])
                     cv2.circle(frame, (cx, cy), 10, (0, 0, 255), cv2.FILLED)
+                    if finger_index == 0:
+                        thumbbent = True
+                    elif finger_index == 1:
+                        ukazbent = True
+                    elif finger_index == 2:
+                        sredbent = True
+                    elif finger_index == 3:
+                        bezbent = True
+                    else:
+                        mizinbent = True
+
                 else:
                     cx, cy = int(landmarks[tip_id].x * frame.shape[1]), int(landmarks[tip_id].y * frame.shape[0])
                     cv2.circle(frame, (cx, cy), 10, (0, 255, 0), cv2.FILLED)
+                    if finger_index == 0:
+                        thumbbent = False
+                    elif finger_index == 1:
+                        ukazbent = False
+                    elif finger_index == 2:
+                        sredbent = False
+                    elif finger_index == 3:
+                        bezbent = False
+                    else:
+                        mizinbent = False
+        country = 0
+        if thumbbent and not ukazbent and not sredbent and not bezbent and not mizinbent:
+            country = 'USA'
+        elif not thumbbent and ukazbent and sredbent and not bezbent and not mizinbent:
+            country = 'Holland'
+        elif not thumbbent and not ukazbent and sredbent and bezbent and mizinbent:
+            country = 'France'
+        elif not thumbbent and not ukazbent and not sredbent and not bezbent and mizinbent:
+            country = 'Japan'
+        cv2.putText(frame, str(country), (100, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), thickness=2)
+
 
     if step > 0:
         frame[500:500 + heighth, 100:100 + widthh] = imageH
         frame[500:500 + heightj, 395:395 + widthj] = imageJ
         frame[500:500 + heighta, 690:690 + widtha] = imageA
         frame[500:500 + heightf, 985:985 + widthf] = imageF
-
 
     if cv2.waitKey(1) & 0xFF == ord(' '):
         step+=1
