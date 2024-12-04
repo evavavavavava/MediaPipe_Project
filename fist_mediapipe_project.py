@@ -18,6 +18,9 @@ heighth, widthh, _ = imageH.shape
 heightj, widthj, _ = imageJ.shape
 heighta, widtha, _ = imageA.shape
 heightf, widthf, _ = imageF.shape
+heightf, widthf, _ = imageF.shape
+
+
 
 intro_text = "Hi! To travel to a country, repeat the movement of the choosed country)"
 introo_text = "To start, click 'space'"
