@@ -3,6 +3,9 @@ import mediapipe as mp
 import numpy as np
 import tkinter as tk
 
+mp_selfie_segmentation = mp.solutions.selfie_segmentation
+selfie_segmentation = mp_selfie_segmentation.SelfieSegmentation(model_selection=1)
+
 # Получение размеров экрана
 root = tk.Tk()
 screen_width = 2 * root.winfo_screenwidth()
@@ -10,7 +13,7 @@ screen_height = 2 * root.winfo_screenheight()
 root.destroy()
 
 # Скачивание картинок, распознование их размеров
-imageH = cv2.imread('imageHo.png')
+imageH = cv2.imread('imageVi.png')
 imageJ = cv2.imread('imageJa.png')
 imageA = cv2.imread('imageUsa.png')
 imageF = cv2.imread('imageFr.png')
@@ -28,7 +31,7 @@ introo_text = "To start, click 'space'"
 
 mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
-hands = mp_hands.Hands(static_image_mode=False, max_num_hands=2)
+hands = mp_hands.Hands(static_image_mode=False, max_num_hands=1)
 
 cap = cv2.VideoCapture(0)
 
@@ -70,6 +73,17 @@ def is_finger_bent(base, joint, tip, is_thumb=False): #Определяет со
         return angle < finger_bend_threshold
 
 step = 0
+
+backgrounds = {
+    "USA": "USA_photo.png",
+    "Vietnam": "Vietnam_photo.png",
+    "France": "France_photo.png",
+    "Japan": "Japan_photo.png",
+}
+
+current_background = None  # По умолчанию естественный фон (None)
+background = None  # Начальная переменная для фона
+
 while True:
     ret, frame = cap.read()
     if not ret:
@@ -79,15 +93,17 @@ while True:
     frame = np.fliplr(frame)
     results = hands.process(frame)
     frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+    # Сегментация кадра
+    segmentation_results = selfie_segmentation.process(frame)
+    mask = segmentation_results.segmentation_mask
+    binary_mask = (mask > 0.5).astype(np.uint8)
+    binary_mask_inv = 1 - binary_mask
+
+
     if results.multi_hand_landmarks: # Если обнаружена рука
         for hand_landmarks in results.multi_hand_landmarks: # Идем по каждой точке
             mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS) # Рисуем все точки и линии
             landmarks = hand_landmarks.landmark
-
-            #for id, landmark in enumerate(landmarks):
-            #    h, w, c = frame.shape
-            #    cx, cy = int(landmark.x * w), int(landmark.y * h)
-            #    cv2.putText(frame, str(id), (cx, cy), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1) # Подписывает номера точек
 
             for finger_index, tip_id in enumerate(tip_ids): # Идем по кончикам
                 base_id = base_ids[finger_index] # Находим основание данного пальца
@@ -120,16 +136,31 @@ while True:
                         bezbent = False
                     else:
                         mizinbent = False
-        country = 0
+        country = ''
         if thumbbent and not ukazbent and not sredbent and not bezbent and not mizinbent:
             country = 'USA'
         elif not thumbbent and ukazbent and sredbent and not bezbent and not mizinbent:
-            country = 'Holland'
+            country = 'Vietnam'
         elif not thumbbent and not ukazbent and sredbent and bezbent and mizinbent:
             country = 'France'
         elif not thumbbent and not ukazbent and not sredbent and not bezbent and mizinbent:
             country = 'Japan'
-        cv2.putText(frame, str(country), (100, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), thickness=2)
+        else:
+            # Сбрасываем фон, если жест не распознан
+            current_background = None
+            background = None
+
+        # Замена фона
+        if country and backgrounds.get(country) and backgrounds[country] != current_background:
+            current_background = backgrounds[country]
+            background = cv2.imread(current_background)
+            if frame.shape[:2] != background.shape[:2]:
+                background = cv2.resize(background, (frame.shape[1], frame.shape[0]))
+
+        if background is not None:
+            person = cv2.bitwise_and(frame, frame, mask=binary_mask)
+            new_background = cv2.bitwise_and(background, background, mask=binary_mask_inv)
+            frame = cv2.add(person, new_background)
 
 
     if step > 0:
