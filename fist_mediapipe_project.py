@@ -26,8 +26,12 @@ heightf, widthf, _ = imageF.shape
 
 
 # Создаем переменные с текстом
-intro_text = "Hi! To travel to a country, repeat the movement of the choosed country)"
-introo_text = "To start, click 'space'"
+intro_text = "Hi, dear friend!"
+introo_text = "To travel to a country, repeat the movement of the choosed country)"
+introoo_text = "To start, click 'space'"
+introooo_text = "To exit, press 'esc'"
+
+rect = 1
 
 mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
@@ -171,10 +175,15 @@ while True:
 
     if cv2.waitKey(1) & 0xFF == ord(' '):
         step+=1
-        intro_text, introo_text = "", ""
+        intro_text, introo_text, introoo_text, introooo_text = "", "", "", ""
+        rect = 0
 
-    cv2.putText(frame, str(intro_text), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), thickness=2)
-    cv2.putText(frame, str(introo_text), (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), thickness=2)
+    if rect == 1:
+        cv2.rectangle(frame, (0,0), (2000,2000), (0,0,0), thickness=-1)
+    cv2.putText(frame, str(intro_text), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (225, 225, 225), thickness=2)
+    cv2.putText(frame, str(introo_text), (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (225, 225, 225), thickness=2)
+    cv2.putText(frame, str(introoo_text), (10, 150), cv2.FONT_HERSHEY_SIMPLEX, 1, (225, 225, 225), thickness=2)
+    cv2.putText(frame, str(introooo_text), (10, 200), cv2.FONT_HERSHEY_SIMPLEX, 1, (225, 225, 225), thickness=2)
     # Масштабируем изображение до размера окна
     frame_resized = cv2.resize(frame, (window_width, window_height))
 
@@ -183,6 +192,7 @@ while True:
 
     if cv2.waitKey(10) == 27:
         break
+
 
 cap.release()
 cv2.destroyAllWindows()
